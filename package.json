@@ -1,6 +1,6 @@
 {
-  "name": "payload-template-ts-blank",
-  "description": "Payload project created from ts-blank template",
+  "name": "bexup",
+  "description": "Bexup",
   "version": "1.0.0",
   "main": "dist/server.js",
   "license": "MIT",
