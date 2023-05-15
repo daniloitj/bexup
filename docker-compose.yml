@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"            # s3 
+      - "8080:8080"                 
+    environment:
+      - SERVICES=s3,sqs
+      - LAMBDA_EXECUTOR=local
+      - DATA_DIR=/tmp/localstack/data      
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEBUG=1
+      # AWS
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_REGION=us-east-1
+      - AWS_DEFAULT_OUTPUT=json    
+    volumes: 
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack/docker-entrypoint.sh:/docker-entrypoint-initaws.d/docker-entrypoint.sh
+      - ./localstack/data:/tmp/localstack/data
+      - ./localstack/config:/root/localstack/config   
+      - ./init/sqs-messages:/tmp/localstack/data/sqs-messages  
+  payload:
+    image: node:18-alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/home/node/app
+      - node_modules:/home/node/app/node_modules
+    working_dir: /home/node/app/
+    command: sh -c "yarn install && yarn dev"
+    depends_on:
+      - mongo
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/payload
+      PORT: 3000
+      NODE_ENV: development
+      PAYLOAD_SECRET: TESTING
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    command:
+      - --storageEngine=wiredTiger
+    volumes:
+      - data:/data/db
+    logging:
+      driver: none
+
+volumes:
+  data:
+  node_modules:
